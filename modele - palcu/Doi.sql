@@ -4,11 +4,78 @@
 --create table functii_nic as select * from functii;
 --create table specializare_nic as select * from specializare;
 
-select * from personal_nic;
-select * from pacienti_nic;
-select * from trateaza_nic;
-select * from functii_nic;
-select * from specializare_nic;
+select * from personal_teo;
+select * from pacienti_teo;
+select * from trateaza_teo;
+select * from functii_teo;
+select * from specializare_teo;
+
+-- EX 1
+ CREATE OR REPLACE PACKAGE data_struct
+ IS
+    TYPE struct_pacient IS RECORD (
+        id_pacient        pacienti_teo.id_pacient%TYPE,
+        nume              pacienti_teo.nume%TYPE,
+        nr_zile_internat  NUMBER(3)
+    );
+    
+    TYPE tabel_imbricat IS TABLE OF struct_pacient;
+
+ END data_struct;
+/
+
+
+CREATE OR REPLACE FUNCTION nic_get_lista_pacienti(cod_angajat NUMBER)
+    RETURN data_struct.tabel_imbricat
+IS
+    rezultat data_struct.tabel_imbricat := data_struct.tabel_imbricat();
+    CURSOR pacienti IS
+        SELECT p.id_pacient, p.nume,  t.data_externare - t.data_internare
+        FROM personal_teo a JOIN trateaza_teo t ON (a.id_salariat = t.id_salariat)
+                        JOIN pacienti_teo p ON (t.id_pacient = p.id_pacient)
+        WHERE a.id_salariat = cod_angajat;
+BEGIN
+    SELECT DISTINCT p.id_pacient, p.nume,  t.data_externare - t.data_internare
+    BULK COLLECT INTO rezultat
+    FROM personal_teo a JOIN trateaza_teo t ON (a.id_salariat = t.id_salariat)
+                        JOIN pacienti_teo p ON (t.id_pacient = p.id_pacient)
+    WHERE a.id_salariat = cod_angajat;
+    
+    RETURN rezultat;
+END nic_get_lista_pacienti;
+/
+
+DECLARE
+    rezultat data_struct.tabel_imbricat := data_struct.tabel_imbricat();
+BEGIN
+    rezultat := nic_get_lista_pacienti(1);
+--    rezultat := get_lista_pacienti(2);
+
+    DBMS_OUTPUT.PUT_LINE('Lista de pacienti pentru doctorul cu id-ul 1 este:');
+
+    FOR i IN rezultat.FIRST..rezultat.LAST LOOP
+        DBMS_OUTPUT.PUT_LINE(rezultat(i).id_pacient || 'Nume: ' || rezultat(i).nume || '. Numar de zile interat: ' || rezultat(i).nr_zile_internat);
+
+    END LOOP;
+
+END;
+/
+
+
+
+
+
+SELECT distinct p.id_pacient, p.nume,  t.data_externare - t.data_internare
+    FROM personal_teo a JOIN trateaza_teo t ON (a.id_salariat = t.id_salariat)
+                        JOIN pacienti_teo p ON (t.id_pacient = p.id_pacient)
+    WHERE a.id_salariat = 1;
+
+
+
+
+
+
+
 
 
 
