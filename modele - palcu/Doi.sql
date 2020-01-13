@@ -1,3 +1,17 @@
+--create table personal_nic as select * from personal;
+--create table pacienti_nic as select * from pacienti;
+--create table trateaza_nic as select * from trateaza;
+--create table functii_nic as select * from functii;
+--create table specializare_nic as select * from specializare;
+
+select * from personal_nic;
+select * from pacienti_nic;
+select * from trateaza_nic;
+select * from functii_nic;
+select * from specializare_nic;
+
+
+
 -- EX 2
 CREATE OR REPLACE PROCEDURE get_data_function
 IS
